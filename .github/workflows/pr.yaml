@@ -3,7 +3,7 @@ name: Create PR to upstream
 on:
   push:
     branch:
-      - main
+      - 'main'
 
 permissions:
   contents: read
@@ -35,9 +35,6 @@ jobs:
         run: |
           git config user.name ${{ secrets.USER }}
           git config user.email ${{ secrets.EMAIL }}
-
-      - name: Setup github cli
-        uses: cli/cli-action@v2
 
       - name: Create PR
         env:
