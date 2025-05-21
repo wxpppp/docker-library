@@ -19,24 +19,21 @@ jobs:
           ref: main
           fetch-depth: 2
 
-      - name: Check last commit message
-        id: check_commit
+      - name: Determine if commit matches
+        id: check_match
         run: |
           msg=$(git log -1 --pretty=%B)
           echo "Last commit message: ${msg}"
-          echo "message=${msg}" >> $GITHUB_OUTPUT
-
-      - name: Determine if commit matches
-        id: match
-        run: |
-          echo "${{ steps.check_commit.outputs.message }}" | grep -i "add image" && echo "match=true" >> $GITHUB_OUTPUT || echo "match=false" >> $GITHUB_OUTPUT
+          echo "${msg}" | grep -i "add image" && echo "match=true" >> $GITHUB_OUTPUT || echo "match=false" >> $GITHUB_OUTPUT
 
       - name: Setup git
+        if: ${{ steps.check_match.outputs.match != 'false' }}
         run: |
           git config user.name ${{ secrets.USER }}
           git config user.email ${{ secrets.EMAIL }}
 
       - name: Create PR
+        if: ${{ steps.check_match.outputs.match != 'false' }}
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
