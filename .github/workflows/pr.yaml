@@ -1,0 +1,55 @@
+name: Create PR to upstream
+
+on:
+  push:
+    branch:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 2
+
+      - name: Check last commit message
+        id: check_commit
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          echo "Last commit message: ${msg}"
+          echo "message=${msg}" >> $GITHUB_OUTPUT
+
+      - name: Determine if commit matches
+        id: match
+        run: |
+          echo "${{ steps.check_commit.outputs.message }}" | grep -i "add image" && echo "match=true" >> $GITHUB_OUTPUT || echo "match=false" >> $GITHUB_OUTPUT
+
+      - name: Setup git
+        run: |
+          git config user.name ${{ secrets.USER }}
+          git config user.email ${{ secrets.EMAIL }}
+
+      - name: Setup github cli
+        uses: cli/cli-action@v2
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          gh pr create \
+            --repo Loongson-Cloud-Community/docker-library \
+            --base main \
+            --head ${{ github.repository_owner }}:main \
+            --title "Add image" \
+            --body "${{ steps.check_commit.outputs.message }}"
+
+                  
+
+
